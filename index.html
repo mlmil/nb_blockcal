@@ -4,117 +4,47 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
 <title>NEON BLONDE BLOCK CALENDAR</title>
 <style>
-body {
-  margin:0;
-  padding:10px;
-  background:#0a0a0f;
-  color:#eee;
-  font-family:Arial;
-  text-align:center;
-}
-
-/* Title */
-h1 {
-  color:#ff77ff;
-  font-size:28px;
-  margin:5px 0;
-}
-
-/* Calendar link */
-a {
+body {margin:0;padding:10px;background:#0a0a0f;color:#eee;font-family:Arial;text-align:center;}
+h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
+.gcal {
+  display:block;
+  background:#003322;
   color:#00ff88;
-  text-decoration:none;
-  font-size:16px;
-}
-
-/* Month label (no glow) */
-.month {
-  font-size:48px;
-  font-weight:bold;
-  margin:15px 0 5px 0;
-  color:#fff;
-  line-height:1.1;
-}
-
-@media(max-width:480px){
-  .month { font-size:34px; }
-}
-
-/* Navigation */
-.nav {
-  display:flex;
-  justify-content:space-between;
-  margin:10px 0;
-}
-
-.nav button {
-  flex:1;
-  margin:0 5px;
-  padding:10px;
-  font-size:20px;
-  background:#111;
-  color:#00ffcc;
-  border:2px solid #00ffcc;
-  border-radius:6px;
-}
-
-/* Grid */
-.grid {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:5px;
-}
-
-/* Day names */
-.day-name {
-  font-size:14px;
-  padding:6px 0;
-  color:#ffeeff;
-}
-
-/* Desktop day squares */
-.day {
-  padding:20px;
-  border:2px solid #333;
-  font-size:20px;
-  background:#1b1b27;
-  border-radius:6px;
-  min-height:70px;
-}
-
-/* Mobile responsive day squares */
-@media(max-width:480px){
-  .day {
-    padding:3vw;
-    min-height:10vw;
-    font-size:3.6vw;   /* MEDIUM SIZE */
-  }
-}
-
-.weekend { background:#1a2240; }
-.today { border:3px solid #00ff88; }
-.blocked { background:#550000 !important; color:#fff; }
-
-/* Popup form */
-.form {
-  display:none;
-  margin-top:15px;
-}
-
-input, button {
+  padding:14px;
+  margin:12px auto;
+  border-radius:10px;
   width:90%;
-  padding:10px;
-  margin:8px;
-  border-radius:6px;
-  font-size:16px;
+  font-size:20px;
+  text-align:center;
+  text-decoration:none;
+  border:2px solid #00ff88;
 }
+.gcal:active {background:#005533;}
+.month {font-size:48px;font-weight:bold;margin:15px 0 5px 0;color:#fff;line-height:1.1;}
+@media(max-width:480px){.month{font-size:34px;}}
+.nav {display:flex;justify-content:space-between;margin:10px 0;}
+.nav button {flex:1;margin:0 5px;padding:10px;font-size:20px;background:#111;color:#00ffcc;border:2px solid #00ffcc;border-radius:6px;}
+.grid {display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.day-name {font-size:14px;padding:6px 0;color:#ffeeff;}
+.day {padding:20px;border:2px solid #333;font-size:20px;background:#1b1b27;border-radius:6px;min-height:70px;}
+@media(max-width:480px){
+  .day {padding:3vw;min-height:10vw;font-size:3.6vw;}
+}
+.weekend {background:#1a2240;}
+.today {border:3px solid #00ff88;}
+.blocked {background:#550000 !important;color:#fff;}
+.form {display:none;margin-top:15px;}
+input,button {width:90%;padding:10px;margin:8px;border-radius:6px;font-size:16px;}
 </style>
 </head>
 
 <body>
 
 <h1>NEON BLONDE BLOCK CALENDAR</h1>
-<a href="https://calendar.google.com/calendar/u/0?cid=bmVvbmJsb25kZXZjQGdtYWlsLmNvbQ" target="_blank">GOOGLE CALENDAR LINK</a>
+
+<a class="gcal" href="https://calendar.google.com/calendar/u/0?cid=bmVvbmJsb25kZXZjQGdtYWlsLmNvbQ" target="_blank">
+OPEN GOOGLE CALENDAR
+</a>
 
 <div class="nav">
 <button onclick="prevMonth()">◀</button>
@@ -122,7 +52,6 @@ input, button {
 </div>
 
 <div id="month" class="month"></div>
-
 <div id="names" class="grid"></div>
 <div id="cal" class="grid"></div>
 
@@ -136,68 +65,32 @@ input, button {
 </div>
 
 <script>
-let today=new Date();
-let cy=today.getFullYear();
-let cm=today.getMonth();
+let today=new Date(), cy=today.getFullYear(), cm=today.getMonth();
 let blocks=JSON.parse(localStorage.getItem("blocks")||"{}");
-
 const dn=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-function saveBlocks(){
-  localStorage.setItem("blocks",JSON.stringify(blocks));
-}
-
+function saveBlocks(){localStorage.setItem("blocks",JSON.stringify(blocks));}
 function renderNames(){
-  let n=document.getElementById("names");
-  n.innerHTML="";
-  dn.forEach(x=>{
-    let d=document.createElement("div");
-    d.className="day-name";
-    d.innerText=x;
-    n.appendChild(d);
-  });
+  let n=document.getElementById("names"); n.innerHTML="";
+  dn.forEach(x=>{let d=document.createElement("div");d.className="day-name";d.innerText=x;n.appendChild(d);});
 }
-
 function build(){
-  let m=document.getElementById("month");
-  m.innerText=new Date(cy,cm).toLocaleString("default",{month:"long",year:"numeric"});
-
-  let c=document.getElementById("cal");
-  c.innerHTML="";
-
-  let fd=new Date(cy,cm,1).getDay();
-  let dim=new Date(cy,cm+1,0).getDate();
-
-  for(let i=0;i<fd;i++){
-    let e=document.createElement("div");
-    e.style.visibility="hidden";
-    c.appendChild(e);
-  }
-
+  document.getElementById("month").innerText=new Date(cy,cm).toLocaleString("default",{month:"long",year:"numeric"});
+  let c=document.getElementById("cal"); c.innerHTML="";
+  let fd=new Date(cy,cm,1).getDay(), dim=new Date(cy,cm+1,0).getDate();
+  for(let i=0;i<fd;i++){let e=document.createElement("div");e.style.visibility="hidden";c.appendChild(e);}
   for(let d=1;d<=dim;d++){
-    let ob=document.createElement("div");
-    ob.className="day";
-
+    let ob=document.createElement("div"); ob.className="day";
     let dt=new Date(cy,cm,d);
     if(dt.getDay()==0||dt.getDay()==6) ob.classList.add("weekend");
-
     let key=`${cy}-${String(cm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
-    if(blocks[key]){
-      ob.classList.add("blocked");
-      ob.innerText=blocks[key];
-    } else {
-      ob.innerText=d;
-    }
-
+    if(blocks[key]){ob.classList.add("blocked"); ob.innerText=blocks[key];}
+    else{ob.innerText=d;}
     if(dt.toDateString()==today.toDateString()) ob.classList.add("today");
-
     ob.onclick=()=>openForm(key);
-
     c.appendChild(ob);
   }
 }
-
 function openForm(ds){
   document.getElementById("cal").style.display="none";
   document.getElementById("names").style.display="none";
@@ -206,44 +99,24 @@ function openForm(ds){
   document.getElementById("end").value=ds;
   document.getElementById("title").value="";
 }
-
 function saveBlock(){
-  let t=document.getElementById("title").value;
-  let s=document.getElementById("start").value;
-  let e=document.getElementById("end").value||s;
-  if(!t||!s)return;
-
-  let sd=new Date(s);
-  let ed=new Date(e);
-
+  let t=document.getElementById("title").value, s=document.getElementById("start").value, e=document.getElementById("end").value||s;
+  if(!t||!s) return;
+  let sd=new Date(s), ed=new Date(e);
   while(sd<=ed){
     let key=`${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
     blocks[key]=t;
     sd.setDate(sd.getDate()+1);
   }
-
-  saveBlocks();
-  goBack();
-  build();
+  saveBlocks(); goBack(); build();
 }
-
 function goBack(){
   document.getElementById("form").style.display="none";
   document.getElementById("cal").style.display="grid";
   document.getElementById("names").style.display="grid";
 }
-
-function nextMonth(){
-  cm++;
-  if(cm>11){cm=0;cy++;}
-  build();
-}
-
-function prevMonth(){
-  cm--;
-  if(cm<0){cm=11;cy--;}
-  build();
-}
+function nextMonth(){cm++; if(cm>11){cm=0;cy++;} build();}
+function prevMonth(){cm--; if(cm<0){cm=11;cy--;} build();}
 
 renderNames();
 build();
