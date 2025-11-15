@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
@@ -7,6 +7,7 @@
 body {margin:0;padding:10px;background:#0a0a0f;color:#eee;font-family:Arial;text-align:center;}
 h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
 
+
 .gcal {
   display:block;background:#003322;color:#00ff88;padding:14px;
   margin:12px auto;border-radius:10px;width:90%;font-size:20px;
@@ -14,8 +15,10 @@ h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
 }
 .gcal:active {background:#005533;}
 
+
 .month {font-size:48px;font-weight:bold;margin:15px 0 5px;color:#fff;}
 @media(max-width:480px){.month{font-size:34px;}}
+
 
 .nav {display:flex;justify-content:space-between;margin:10px 0;}
 .nav button {
@@ -23,8 +26,10 @@ h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
   color:#00ffcc;border:2px solid #00ffcc;border-radius:6px;
 }
 
+
 .grid {display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
 .day-name {font-size:14px;padding:6px 0;color:#ffeeff;}
+
 
 .day {
   padding:20px;border:2px solid #333;font-size:12px;
@@ -35,50 +40,66 @@ h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
   .day {padding:3vw;min-height:12vw;font-size:2.8vw;}
 }
 
+
 .weekend {background:#1a2240;}
 .today {border:3px solid #00ff88;}
 .blocked {background:#550000 !important;color:#fff;}
-.reserved {background:#003d00 !important;color:#aaffaa;font-weight:bold;}
+.booked {background:#003d00 !important;color:#aaffaa;font-weight:bold;}
+
 
 .form, .choiceBox {display:none;margin-top:15px;}
+
 
 input, select, button {
   width:90%;padding:10px;margin:8px;border-radius:6px;font-size:16px;
 }
-#deleteOne,#deleteAll,#deleteRes {background:#440000;border:2px solid #aa0000;color:#fff;}
-#confirmBlock,#confirmRes {color:#00ff88;font-size:18px;margin-top:8px;}
+#deleteOne,#deleteAll,#deleteBook {background:#440000;border:2px solid #aa0000;color:#fff;}
+#confirmBlock,#confirmBook {color:#00ff88;font-size:18px;margin-top:8px;}
 </style>
 </head>
 
+
 <body>
 
+
 <h1>NEON BLONDE BLOCK CALENDAR</h1>
+
+
 <a class="gcal" href="https://calendar.google.com/calendar/u/0/r?cid=neonblondevc@gmail.com" target="_blank">
 OPEN GOOGLE CALENDAR
 </a>
+
 
 <div class="nav">
 <button onclick="prevMonth()">◀</button>
 <button onclick="nextMonth()">▶</button>
 </div>
 
+
 <div id="month" class="month"></div>
 <div id="names" class="grid"></div>
 <div id="cal" class="grid"></div>
 
+
+<!-- CHOICE BOX -->
 <div id="choice" class="choiceBox">
 <h3>Select Action</h3>
 <button style="background:#550000;color:#fff;border:2px solid #aa0000;"
-onclick="openBlockoutForm()">Blockout</button>
+onclick="openBlockForm()">Block</button>
+
 
 <button style="background:#004400;color:#aaffaa;border:2px solid #00aa00;"
-onclick="openReserveForm()">Reserve</button>
+onclick="openBookForm()">Book</button>
+
 
 <button onclick="goBack()">Back</button>
 </div>
 
+
+<!-- BLOCK FORM -->
 <div id="blockForm" class="form">
-<h3 style="color:#ffbbbb;">Blockout</h3>
+<h3 style="color:#ffbbbb;">Block</h3>
+
 
 <select id="blockName">
 <option>MIKE</option>
@@ -88,45 +109,55 @@ onclick="openReserveForm()">Reserve</button>
 <option>CURT</option>
 </select>
 
+
 <input id="blockStart" type="date">
 <input id="blockEnd" type="date">
 
+
 <div id="confirmBlock"></div>
 
-<button onclick="saveBlock()">Save Blockout</button>
+
+<button onclick="saveBlock()">Save Block</button>
 <button id="deleteOne" style="display:none;" onclick="deleteOne()">Delete This Day</button>
 <button id="deleteAll" style="display:none;" onclick="deleteAll()">Delete Entire Block</button>
 <button onclick="goBack()">Back</button>
 </div>
 
-<div id="resForm" class="form">
-<h3 style="color:#aaffaa;">Reserve</h3>
 
-<input id="resTitle" placeholder="Title (e.g., Ventura Gig)">
-<input id="resTime" type="time">
-<input id="resLoc" placeholder="Location">
+<!-- BOOK FORM -->
+<div id="bookForm" class="form">
+<h3 style="color:#aaffaa;">Book</h3>
 
-<div id="confirmRes"></div>
 
-<button onclick="saveReserve()">Save Reservation</button>
-<button id="deleteRes" style="display:none;" onclick="deleteReservation()">Delete Reservation</button>
+<input id="bookTitle" placeholder="Title (e.g., Ventura Gig)">
+<input id="bookTime" type="time">
+<input id="bookLoc" placeholder="Location">
+
+
+<div id="confirmBook"></div>
+
+
+<button onclick="saveBook()">Save Booking</button>
+<button id="deleteBook" style="display:none;" onclick="deleteBooking()">Delete Booking</button>
 <button onclick="goBack()">Back</button>
 </div>
+
 
 <script>
 let today=new Date(), cy=today.getFullYear(), cm=today.getMonth();
 let blocks=JSON.parse(localStorage.getItem("blocks")||"{}");
-let reserves=JSON.parse(localStorage.getItem("reserves")||"{}");
+let bookings=JSON.parse(localStorage.getItem("bookings")||"{}");
 const dn=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 let selectedDate="";
-
-function saveData(){
+function saveAll(){
   localStorage.setItem("blocks",JSON.stringify(blocks));
-  localStorage.setItem("reserves",JSON.stringify(reserves));
+  localStorage.setItem("bookings",JSON.stringify(bookings));
 }
 
+
 function renderNames(){
-  let n=document.getElementById("names"); n.innerHTML="";
+  let n=document.getElementById("names"); 
+  n.innerHTML="";
   dn.forEach(x=>{
     let d=document.createElement("div");
     d.className="day-name";
@@ -135,12 +166,19 @@ function renderNames(){
   });
 }
 
+
 function build(){
   document.getElementById("month").innerText =
     new Date(cy,cm).toLocaleString("default",{month:"long",year:"numeric"});
 
-  let c=document.getElementById("cal"); c.innerHTML="";
-  let fd=new Date(cy,cm,1).getDay(), dim=new Date(cy,cm+1,0).getDate();
+
+  let c=document.getElementById("cal");
+  c.innerHTML="";
+
+
+  let fd=new Date(cy,cm,1).getDay();
+  let dim=new Date(cy,cm+1,0).getDate();
+
 
   for(let i=0;i<fd;i++){
     let e=document.createElement("div");
@@ -148,132 +186,123 @@ function build(){
     c.appendChild(e);
   }
 
+
   for(let d=1;d<=dim;d++){
     let ob=document.createElement("div");
     ob.className="day";
+
+
     let key=`${cy}-${String(cm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
 
     if(blocks[key]){
       ob.classList.add("blocked");
       ob.innerText=blocks[key];
     }
-    else if(reserves[key]){
-      ob.classList.add("reserved");
-      ob.innerText=reserves[key].title;
+    else if(bookings[key]){
+      ob.classList.add("booked");
+      ob.innerText=bookings[key].title;
     }
     else {
       ob.innerText=d;
     }
 
+
     let dt=new Date(cy,cm,d);
-    if(dt.getDay()==0||dt.getDay()==6) ob.classList.add("weekend");
+    if(dt.getDay()==0 || dt.getDay()==6) ob.classList.add("weekend");
     if(dt.toDateString()==today.toDateString()) ob.classList.add("today");
 
-    ob.onclick=()=>chooseAction(key);
+
+    ob.onclick = () => chooseAction(key);
     c.appendChild(ob);
   }
 }
 
+
 function chooseAction(ds){
-  selectedDate=ds;
+  selectedDate = ds;
+
+
   document.getElementById("choice").style.display="block";
   document.getElementById("cal").style.display="none";
   document.getElementById("names").style.display="none";
 
+
   document.getElementById("deleteOne").style.display = blocks[ds] ? "block" : "none";
   document.getElementById("deleteAll").style.display = blocks[ds] ? "block" : "none";
-  document.getElementById("deleteRes").style.display = reserves[ds] ? "block" : "none";
+  document.getElementById("deleteBook").style.display = bookings[ds] ? "block" : "none";
 }
 
-function openBlockoutForm(){
+
+function openBlockForm(){
   document.getElementById("choice").style.display="none";
   document.getElementById("blockForm").style.display="block";
 
-  document.getElementById("blockStart").value=selectedDate;
-  document.getElementById("blockEnd").value=selectedDate;
+
+  document.getElementById("blockStart").value = selectedDate;
+  document.getElementById("blockEnd").value = selectedDate;
+
 
   document.getElementById("confirmBlock").innerText="";
 }
-
-function openReserveForm(){
+function openBookForm(){
   document.getElementById("choice").style.display="none";
-  document.getElementById("resForm").style.display="block";
+  document.getElementById("bookForm").style.display="block";
 
-  document.getElementById("resTitle").value = reserves[selectedDate]?.title || "";
-  document.getElementById("resTime").value = reserves[selectedDate]?.time || "";
-  document.getElementById("resLoc").value = reserves[selectedDate]?.loc || "";
 
-  document.getElementById("confirmRes").innerText="";
+  document.getElementById("bookTitle").value = bookings[selectedDate]?.title || "";
+  document.getElementById("bookTime").value  = bookings[selectedDate]?.time  || "";
+  document.getElementById("bookLoc").value   = bookings[selectedDate]?.loc   || "";
+
+
+  document.getElementById("confirmBook").innerText="";
 }
 
+
 function saveBlock(){
-  let name=document.getElementById("blockName").value;
-  let s=document.getElementById("blockStart").value;
-  let e=document.getElementById("blockEnd").value||s;
+  let name = document.getElementById("blockName").value;
+  let s = document.getElementById("blockStart").value;
+  let e = document.getElementById("blockEnd").value || s;
 
-  let sd=new Date(s), ed=new Date(e);
 
-  while(sd<=ed){
-    let key=`${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
-    delete reserves[key];
-    blocks[key]=name;
+  let sd = new Date(s);
+  let ed = new Date(e);
+
+
+  while(sd <= ed){
+    let key = `${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
+    delete bookings[key];
+    blocks[key] = name;
     sd.setDate(sd.getDate()+1);
   }
 
-  saveData();
-  document.getElementById("confirmBlock").innerText="Saved.";
+
+  saveAll();
+  document.getElementById("confirmBlock").innerText = "Saved.";
 }
+
 
 function deleteOne(){
   delete blocks[selectedDate];
-  saveData();
-  document.getElementById("confirmBlock").innerText="Deleted.";
+  saveAll();
+  document.getElementById("confirmBlock").innerText = "Deleted.";
 }
+
 
 function deleteAll(){
-  let name=blocks[selectedDate];
+  let name = blocks[selectedDate];
   for(let k in blocks){
-    if(blocks[k]==name) delete blocks[k];
+    if(blocks[k] == name) delete blocks[k];
   }
-  saveData();
-  document.getElementById("confirmBlock").innerText="Deleted.";
+  saveAll();
+  document.getElementById("confirmBlock").innerText = "Deleted.";
 }
 
-function saveReserve(){
-  let t=document.getElementById("resTitle").value;
-  let tm=document.getElementById("resTime").value;
-  let l=document.getElementById("resLoc").value;
 
-  reserves[selectedDate]={title:t,time:tm,loc:l};
-  delete blocks[selectedDate];
+function saveBook(){
+  let t  = document.getElementById("bookTitle").value;
+  let tm = document.getElementById("bookTime").value;
+  let l  = document.getElementById("bookLoc").value;
 
-  saveData();
-  document.getElementById("confirmRes").innerText="Saved.";
-}
 
-function deleteReservation(){
-  delete reserves[selectedDate];
-  saveData();
-  document.getElementById("confirmRes").innerText="Deleted.";
-}
-
-function goBack(){
-  document.getElementById("choice").style.display="none";
-  document.getElementById("blockForm").style.display="none";
-  document.getElementById("resForm").style.display="none";
-
-  document.getElementById("cal").style.display="grid";
-  document.getElementById("names").style.display="grid";
-
-  build();
-}
-
-function nextMonth(){cm++; if(cm>11){cm=0;cy++;} build();}
-function prevMonth(){cm--; if(cm<0){cm=11;cy--;} build();}
-
-renderNames();
-build();
-</script>
-
-</body>
-</html>
+  bookings[selectedDa]()
