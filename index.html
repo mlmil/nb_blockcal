@@ -1,238 +1,113 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
+<html><head><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
 <title>NEON BLONDE BLOCK CALENDAR</title>
 <style>
-body {
-  font-family: Arial;
-  background:#0a0a0f;
-  color:#eee;
-  padding:10px;
-  margin:0;
-  text-align:center;
-}
-
-/* Title */
-h1 {
-  font-size:30px;
-  color:#ff77ff;
-  margin:10px 0 5px 0;
-}
-
-/* Google Calendar link */
-a {
-  color:#00ff88;
-  font-size:16px;
-  text-decoration:none;
-}
-a:hover { text-decoration:underline; }
-
-/* Month label (no glow) */
-.month-label {
-  font-size:60px;
-  font-weight:bold;
-  margin-top:15px;
-  margin-bottom:5px;
-  color:#ffffff;
-  line-height:1.1;
-}
-
-/* Auto-scale month label on small phones */
-@media(max-width:480px) {
-  .month-label { font-size:42px; }
-}
-@media(max-width:360px) {
-  .month-label { font-size:34px; }
-}
-
-/* Navigation buttons */
-.nav {
-  display:flex;
-  justify-content:space-between;
-  margin:12px 0;
-}
-.nav button {
-  flex:1;
-  margin:0 6px;
-  background:#111;
-  color:#00ffcc;
-  border:2px solid #00ffcc;
-  padding:10px 0;
-  font-size:20px;
-  border-radius:8px;
-}
-
-/* Calendar grid */
-.calendar {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-  margin-top:10px;
-}
-
-/* Day names row */
-.day-name {
-  font-size:16px;
-  font-weight:bold;
-  padding:10px 0;
-  color:#ffeeff;
-}
-
-/* Day squares */
-.day {
-  padding:28px;
-  border:2px solid #444;
-  font-size:22px;
-  background:#1b1b27;
-  border-radius:8px;
-  min-height:80px;
-}
-
-/* Weekend color */
-.weekend {
-  background:#1a2240 !important;
-}
-
-/* Today highlight */
-.today {
-  border:3px solid #00ff88;
-}
-
-/* Popup form */
-.form {
-  display:none;
-  margin-top:20px;
-}
-input, button {
-  font-size:18px;
-  padding:12px;
-  margin:10px;
-  width:90%;
-  border-radius:8px;
-}
-button {
-  background:#222;
-  color:#fff;
-  border:2px solid #666;
-}
+body{margin:0;padding:10px;background:#0a0a0f;color:#eee;font-family:Arial;text-align:center;}
+h1{color:#ff77ff;font-size:28px;margin:5px 0;}
+a{color:#00ff88;text-decoration:none;font-size:16px;}
+.month{font-size:48px;color:#fff;margin:10px 0;}
+@media(max-width:480px){.month{font-size:34px;}}
+.nav{display:flex;justify-content:space-between;margin:10px 0;}
+.nav button{flex:1;margin:0 5px;padding:10px;font-size:18px;background:#111;color:#00ffcc;border:2px solid #00ffcc;border-radius:6px;}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.day-name{font-size:14px;padding:6px 0;color:#ffeeff;}
+.day{min-height:70px;padding:20px;font-size:20px;background:#1b1b27;border:2px solid #333;border-radius:6px;}
+.weekend{background:#1a2240;}
+.today{border-color:#00ff88;}
+.blocked{background:#550000 !important;color:#fff;}
+.form{display:none;margin-top:15px;}
+input,button{width:90%;padding:10px;margin:8px;border-radius:6px;font-size:16px;}
 </style>
 </head>
-
 <body>
 
 <h1>NEON BLONDE BLOCK CALENDAR</h1>
 <a href="https://calendar.google.com/calendar/u/0?cid=bmVvbmJsb25kZXZjQGdtYWlsLmNvbQ" target="_blank">GOOGLE CALENDAR LINK</a>
 
 <div class="nav">
-  <button id="prevBtn" onclick="prevMonth()">◀</button>
-  <button id="nextBtn" onclick="nextMonth()">▶</button>
+<button id="prev" onclick="prevMonth()">◀</button>
+<button id="next" onclick="nextMonth()">▶</button>
 </div>
 
-<div class="month-label" id="monthLabel"></div>
-
-<div id="dayNames" class="calendar"></div>
-<div id="calendar" class="calendar"></div>
+<div id="month" class="month"></div>
+<div id="names" class="grid"></div>
+<div id="cal" class="grid"></div>
 
 <div id="form" class="form">
-  <h3 style="font-size:22px;">Block Days</h3>
-  <input id="title" placeholder="Title (e.g., Dave Out)">
-  <input id="start" type="date">
-  <input id="end" type="date" placeholder="End date (optional)">
-  <button onclick="saveBlock()">Save</button>
-  <button onclick="goBack()">Back</button>
+<h3>Block Days</h3>
+<input id="title" placeholder="Title (e.g., Dave Out)">
+<input id="start" type="date">
+<input id="end" type="date">
+<button onclick="saveBlock()">Save</button>
+<button onclick="goBack()">Back</button>
 </div>
 
 <script>
-let today = new Date();
-let currentYear = today.getFullYear();
-let currentMonth = today.getMonth();
+let today=new Date();
+let cy=today.getFullYear(), cm=today.getMonth();
+let blocks=JSON.parse(localStorage.getItem("blocks")||"{}");
+const dn=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function saveBlocks(){localStorage.setItem("blocks",JSON.stringify(blocks));}
 
-const monthShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const dayNamesList = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-
-function updateNavLabels() {
-  let prevIndex = currentMonth - 1;
-  let nextIndex = currentMonth + 1;
-  if (prevIndex < 0) prevIndex = 11;
-  if (nextIndex > 11) nextIndex = 0;
-  document.getElementById("prevBtn").innerText = "◀ " + monthShort[prevIndex];
-  document.getElementById("nextBtn").innerText = monthShort[nextIndex] + " ▶";
+function renderNames(){
+ let n=document.getElementById("names"); n.innerHTML="";
+ dn.forEach(x=>{let d=document.createElement("div");d.className="day-name";d.innerText=x;n.appendChild(d);});
 }
 
-function renderDayNames() {
-  const dn = document.getElementById("dayNames");
-  dn.innerHTML = "";
-  dayNamesList.forEach(d => {
-    let cell = document.createElement("div");
-    cell.className = "day-name";
-    cell.innerText = d;
-    dn.appendChild(cell);
-  });
+function build(){
+ let m=document.getElementById("month");
+ m.innerText=new Date(cy,cm).toLocaleString("default",{month:"long",year:"numeric"});
+ let c=document.getElementById("cal"); c.innerHTML="";
+ let fd=new Date(cy,cm,1).getDay();
+ let dim=new Date(cy,cm+1,0).getDate();
+ for(let i=0;i<fd;i++){let e=document.createElement("div");e.style.visibility="hidden";c.appendChild(e);}
+ for(let d=1;d<=dim;d++){
+  let ob=document.createElement("div");
+  ob.className="day";
+  let dt=new Date(cy,cm,d);
+  if(dt.getDay()==0||dt.getDay()==6)ob.classList.add("weekend");
+  let key=`${cy}-${String(cm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  if(blocks[key]){ob.classList.add("blocked"); ob.innerText=blocks[key];}
+  else{ob.innerText=d;}
+  if(dt.toDateString()==today.toDateString())ob.classList.add("today");
+  ob.onclick=()=>openForm(key);
+  c.appendChild(ob);
+ }
 }
 
-function buildCalendar() {
-  const cal = document.getElementById("calendar");
-  cal.innerHTML = "";
-  updateNavLabels();
-
-  document.getElementById("monthLabel").innerText =
-    new Date(currentYear, currentMonth).toLocaleString("default", {
-      month: "long",
-      year: "numeric"
-    });
-
-  let firstDay = new Date(currentYear, currentMonth, 1).getDay();
-  let daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-  for (let i = 0; i < firstDay; i++) {
-    let empty = document.createElement("div");
-    empty.className = "day";
-    empty.style.visibility = "hidden";
-    cal.appendChild(empty);
-  }
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    let cell = document.createElement("div");
-    let dateObj = new Date(currentYear, currentMonth, d);
-    let weekday = dateObj.getDay();
-
-    cell.className = "day";
-    if (weekday === 0 || weekday === 6) cell.classList.add("weekend");
-
-    if (
-      dateObj.getFullYear() === today.getFullYear() &&
-      dateObj.getMonth() === today.getMonth() &&
-      dateObj.getDate() === today.getDate()
-    ) {
-      cell.classList.add("today");
-    }
-
-    cell.innerText = d;
-    cal.appendChild(cell);
-  }
+function openForm(ds){
+ document.getElementById("cal").style.display="none";
+ document.getElementById("names").style.display="none";
+ document.getElementById("form").style.display="block";
+ document.getElementById("start").value=ds;
+ document.getElementById("end").value=ds;
+ document.getElementById("title").value="";
 }
 
-function saveBlock() { alert("Saved (demo only)"); }
-function goBack() {
-  document.getElementById("form").style.display = "none";
-  document.getElementById("calendar").style.display = "grid";
-  document.getElementById("dayNames").style.display = "grid";
-}
-function nextMonth() {
-  currentMonth++;
-  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-  buildCalendar();
-}
-function prevMonth() {
-  currentMonth--;
-  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-  buildCalendar();
+function saveBlock(){
+ let t=document.getElementById("title").value;
+ let s=document.getElementById("start").value;
+ let e=document.getElementById("end").value||s;
+ if(!t||!s)return;
+ let sd=new Date(s), ed=new Date(e);
+ while(sd<=ed){
+  let key=`${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
+  blocks[key]=t;
+  sd.setDate(sd.getDate()+1);
+ }
+ saveBlocks(); goBack(); build();
 }
 
-renderDayNames();
-buildCalendar();
+function goBack(){
+ document.getElementById("form").style.display="none";
+ document.getElementById("cal").style.display="grid";
+ document.getElementById("names").style.display="grid";
+}
+
+function nextMonth(){cm++; if(cm>11){cm=0;cy++;} build();}
+function prevMonth(){cm--; if(cm<0){cm=11;cy--;} build();}
+
+renderNames(); build();
 </script>
 
-</body>
-</html>
+</body></html>
