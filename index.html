@@ -1,17 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
+<title>NEON BLONDE BLOCK CALENDAR</title>
+
+<style>
+body {margin:0;padding:10px;background:#0a0a0f;color:#eee;font-family:Arial;text-align:center;}
+h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
+
+.gcal {
+  display:block;background:#003322;color:#00ff88;padding:14px;
+  margin:12px auto;border-radius:10px;width:90%;font-size:20px;
+  text-align:center;text-decoration:none;border:2px solid #00ff88;
+}
+.gcal:active {background:#005533;}
+
+.month {font-size:48px;font-weight:bold;margin:15px 0 5px;color:#fff;}
+@media(max-width:480px){.month{font-size:34px;}}
+
+.nav {display:flex;justify-content:space-between;margin:10px 0;}
+.nav button {
+  flex:1;margin:0 5px;padding:10px;font-size:20px;background:#111;
+  color:#00ffcc;border:2px solid #00ffcc;border-radius:6px;
+}
+
+.grid {display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.day-name {font-size:14px;padding:6px 0;color:#ffeeff;}
+
+.day {
+  padding:20px;border:2px solid #333;font-size:12px;
+  background:#1b1b27;border-radius:6px;min-height:70px;
+  line-height:1.2;cursor:pointer;
+}
+@media(max-width:480px){
+  .day {padding:3vw;min-height:12vw;font-size:2.8vw;}
+}
+
+.weekend {background:#1a2240;}
+.today {border:3px solid #00ff88;}
+.blocked {background:#550000 !important;color:#fff;}
+.booked {background:#003d00 !important;color:#aaffaa;font-weight:bold;}
+
+.form, .choiceBox {display:none;margin-top:15px;}
+
+input, select, button {
+  width:90%;padding:10px;margin:8px;border-radius:6px;font-size:16px;
+}
+.blockBtn {background:#550000;color:#fff;border:2px solid #aa0000;}
+.bookBtn {background:#004400;color:#aaffaa;border:2px solid #00aa00;}
+
+#deleteOne,#deleteAll,#deleteBook {
+  background:#440000;border:2px solid #aa0000;color:#fff;
+}
+
+#choiceDeleteBlock,#choiceDeleteBook {
+  background:#660000;color:#fff;border:2px solid #aa0000;
+  width:90%;
+  margin:10px auto;
+  padding:12px;
+  font-size:18px;
+}
+
+#confirmBlock,#confirmBook {
+  color:#00ff88;font-size:18px;margin-top:8px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>NEON BLONDE BLOCK CALENDAR</h1>
+
+<a class="gcal"
+   href="https://calendar.google.com/calendar/u/0/r?cid=neonblondevc@gmail.com"
+   target="_blank">
+OPEN GOOGLE CALENDAR
+</a>
+
+<div class="nav">
+<button onclick="prevMonth()">◀</button>
+<button onclick="nextMonth()">▶</button>
+</div>
+
+<div id="month" class="month"></div>
+<div id="names" class="grid"></div>
+<div id="cal" class="grid"></div>
+
+<!-- CHOICE BOX -->
+<div id="choice" class="choiceBox">
+<h3>Select Action</h3>
+
+<button class="blockBtn" onclick="openBlockForm()">Block</button>
+<button class="bookBtn" onclick="openBookForm()">Book</button>
+
+<button id="choiceDeleteBlock"
+        style="display:none;"
+        onclick="choiceDeleteBlock()">
+  Delete Block
+</button>
+
+<button id="choiceDeleteBook"
+        style="display:none;"
+        onclick="choiceDeleteBook()">
+  Delete Book
+</button>
+
+<button onclick="goBack()">Back</button>
+</div>
+
+<!-- BLOCK FORM -->
+<div id="blockForm" class="form">
+<h3 style="color:#ffbbbb;">Block</h3>
+
+<select id="blockName">
+<option>MIKE</option>
+<option>KYLE</option>
+<option>ALFRED</option>
+<option>DAVE</option>
+<option>CURT</option>
+</select>
+
+<input id="blockStart" type="date">
+<input id="blockEnd" type="date">
+
+<div id="confirmBlock"></div>
+
+<button onclick="saveBlock()">Save Block</button>
+<button id="deleteOne" style="display:none;" onclick="deleteOne()">Delete This Day</button>
+<button id="deleteAll" style="display:none;" onclick="deleteAll()">Delete Entire Block</button>
+<button onclick="goBack()">Back</button>
+</div>
+
+<!-- BOOK FORM -->
+<div id="bookForm" class="form">
+<h3 style="color:#aaffaa;">Book</h3>
+
+<input id="bookTitle" placeholder="Title">
+<input id="bookTime" type="time">
+<input id="bookLoc" placeholder="Location">
+
+<div id="confirmBook"></div>
+
+<button onclick="saveBook()">Save Booking</button>
+<button id="deleteBook" style="display:none;" onclick="deleteBooking()">Delete Booking</button>
+<button onclick="goBack()">Back</button>
+</div>
+
+<script>
+let today=new Date(), cy=today.getFullYear(), cm=today.getMonth();
+let blocks=JSON.parse(localStorage.getItem("blocks")||"{}");
+let bookings=JSON.parse(localStorage.getItem("bookings")||"{}");
+const dn=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+let selectedDate="";
+
+function saveAll(){
+  localStorage.setItem("blocks",JSON.stringify(blocks));
+  localStorage.setItem("bookings",JSON.stringify(bookings));
+}
+
+function renderNames(){
+  let n=document.getElementById("names");
+  n.innerHTML="";
+  dn.forEach(x=>{
+    let d=document.createElement("div");
+    d.className="day-name";
+    d.innerText=x;
+    n.appendChild(d);
+  });
+}
+
+function build(){
+  document.getElementById("month").innerText =
+    new Date(cy,cm).toLocaleString("default",{month:"long",year:"numeric"});
+
+  let c=document.getElementById("cal");
+  c.innerHTML="";
+
+  let fd=new Date(cy,cm,1).getDay();
+  let dim=new Date(cy,cm+1,0).getDate();
+
+  for(let i=0;i<fd;i++){
+    let e=document.createElement("div");
+    e.style.visibility="hidden";
+    c.appendChild(e);
+  }
+
+  for(let d=1;d<=dim;d++){
+    let ob=document.createElement("div");
+    ob.className="day";
+
+    let key=`${cy}-${String(cm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    if(blocks[key]){
+      ob.classList.add("blocked");
+      ob.innerText=blocks[key];
+    }
+    else if(bookings[key]){
+      ob.classList.add("booked");
+      ob.innerText=bookings[key].title;
+    }
+    else {
+      ob.innerText=d;
+    }
+
+    let dt=new Date(cy,cm,d);
+    if(dt.getDay()==0||dt.getDay()==6) ob.classList.add("weekend");
+    if(dt.toDateString()==today.toDateString()) ob.classList.add("today");
+
+    ob.onclick = () => chooseAction(key);
+    c.appendChild(ob);
+  }
+}
+
+function chooseAction(ds){
+  selectedDate = ds;
+
+  document.getElementById("choice").style.display="block";
+  document.getElementById("cal").style.display="none";
+  document.getElementById("names").style.display="none";
+
+  document.getElementById("choiceDeleteBlock").style.display = blocks[ds] ? "block" : "none";
+  document.getElementById("choiceDeleteBook").style.display  = bookings[ds] ? "block" : "none";
+}
+
+function openBlockForm(){
+  document.getElementById("choice").style.display="none";
+  document.getElementById("blockForm").style.display="block";
+
+  document.getElementById("confirmBlock").innerText =
+    "Blocking: " + new Date(selectedDate + "T00:00:00")
+      .toLocaleDateString(undefined,{weekday:"short",month:"long",day:"numeric",year:"numeric"});
+
+  document.getElementById("blockStart").value = selectedDate;
+  document.getElementById("blockEnd").value   = selectedDate;
+}
+
+function openBookForm(){
+  document.getElementById("choice").style.display="none";
+  document.getElementById("bookForm").style.display="block";
+
+  document.getElementById("bookTitle").value = bookings[selectedDate]?.title || "";
+  document.getElementById("bookTime").value  = bookings[selectedDate]?.time  || "";
+  document.getElementById("bookLoc").value   = bookings[selectedDate]?.loc   || "";
+
+  document.getElementById("confirmBook").innerText="";
+}
+
+function saveBlock(){
+  let name=document.getElementById("blockName").value;
+  let s=document.getElementById("blockStart").value;
+  let e=document.getElementById("blockEnd").value || s;
+
+  let sd=new Date(s + "T00:00:00");
+  let ed=new Date(e + "T00:00:00");
+
+  while(sd <= ed){
+    let key=
+      `${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
+
+    delete bookings[key];
+    blocks[key]=name;
     sd.setDate(sd.getDate()+1);
   }
 
   saveAll();
 
-  // AUTO CLOSE POPUPS
+  // AUTO CLOSE
   document.getElementById("blockForm").style.display="none";
   document.getElementById("bookForm").style.display="none";
   document.getElementById("choice").style.display="none";
 
-  // RESTORE CALENDAR VIEW
   document.getElementById("cal").style.display="grid";
   document.getElementById("names").style.display="grid";
-
   build();
 }
 
@@ -25,15 +285,13 @@ function saveBook(){
 
   saveAll();
 
-  // AUTO CLOSE POPUPS
+  // AUTO CLOSE
   document.getElementById("bookForm").style.display="none";
   document.getElementById("blockForm").style.display="none";
   document.getElementById("choice").style.display="none";
 
-  // RESTORE CALENDAR VIEW
   document.getElementById("cal").style.display="grid";
   document.getElementById("names").style.display="grid";
-
   build();
 }
 
