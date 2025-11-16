@@ -30,7 +30,7 @@ h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
 .day {
   padding:20px;border:2px solid #333;font-size:12px;
   background:#1b1b27;border-radius:6px;min-height:70px;
-  line-height:1.2;
+  line-height:1.2;cursor:pointer;
 }
 @media(max-width:480px){
   .day {padding:3vw;min-height:12vw;font-size:2.8vw;}
@@ -200,4 +200,103 @@ function chooseAction(ds){
 
   document.getElementById("deleteOne").style.display = blocks[ds] ? "block" : "none";
   document.getElementById("deleteAll").style.display = blocks[ds] ? "block" : "none";
-  document.getElementById("deleteBook").st
+  document.getElementById("deleteBook").style.display = bookings[ds] ? "block" : "none";
+}
+
+function openBlockForm(){
+  document.getElementById("choice").style.display="none";
+  document.getElementById("blockForm").style.display="block";
+
+  document.getElementById("confirmBlock").innerText =
+    "Blocking: " + new Date(selectedDate + "T00:00:00")
+      .toLocaleDateString(undefined,{weekday:"short",month:"long",day:"numeric",year:"numeric"});
+
+  document.getElementById("blockStart").value = selectedDate;
+  document.getElementById("blockEnd").value   = selectedDate;
+}
+
+function openBookForm(){
+  document.getElementById("choice").style.display="none";
+  document.getElementById("bookForm").style.display="block";
+
+  document.getElementById("bookTitle").value = bookings[selectedDate]?.title || "";
+  document.getElementById("bookTime").value  = bookings[selectedDate]?.time  || "";
+  document.getElementById("bookLoc").value   = bookings[selectedDate]?.loc   || "";
+
+  document.getElementById("confirmBook").innerText="";
+}
+
+function saveBlock(){
+  let name=document.getElementById("blockName").value;
+  let s=document.getElementById("blockStart").value;
+  let e=document.getElementById("blockEnd").value || s;
+
+  let sd=new Date(s + "T00:00:00");
+  let ed=new Date(e + "T00:00:00");
+
+  while(sd <= ed){
+    let key=
+      `${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
+
+    delete bookings[key];
+    blocks[key]=name;
+    sd.setDate(sd.getDate()+1);
+  }
+
+  saveAll();
+  document.getElementById("confirmBlock").innerText="Saved.";
+}
+
+function deleteOne(){
+  delete blocks[selectedDate];
+  saveAll();
+  document.getElementById("confirmBlock").innerText="Deleted.";
+}
+
+function deleteAll(){
+  let name=blocks[selectedDate];
+  for(let k in blocks){
+    if(blocks[k]==name) delete blocks[k];
+  }
+  saveAll();
+  document.getElementById("confirmBlock").innerText="Deleted.";
+}
+
+function saveBook(){
+  let t=document.getElementById("bookTitle").value;
+  let tm=document.getElementById("bookTime").value;
+  let l=document.getElementById("bookLoc").value;
+
+  bookings[selectedDate]={title:t,time:tm,loc:l};
+  delete blocks[selectedDate];
+
+  saveAll();
+  document.getElementById("confirmBook").innerText="Saved.";
+}
+
+function deleteBooking(){
+  delete bookings[selectedDate];
+  saveAll();
+  document.getElementById("confirmBook").innerText="Deleted.";
+}
+
+function goBack(){
+  document.getElementById("choice").style.display="none";
+  document.getElementById("blockForm").style.display="none";
+  document.getElementById("bookForm").style.display="none";
+
+  document.getElementById("cal").style.display="grid";
+  document.getElementById("names").style.display="grid";
+
+  build();
+}
+
+function nextMonth(){ cm++; if(cm>11){cm=0; cy++;} build(); }
+function prevMonth(){ cm--; if(cm<0){cm=11; cy--;} build(); }
+
+renderNames();
+build();
+</script>
+
+</body>
+</html>
