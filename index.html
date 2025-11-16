@@ -53,6 +53,14 @@ input, select, button {
   background:#440000;border:2px solid #aa0000;color:#fff;
 }
 
+#choiceDeleteBlock,#choiceDeleteBook {
+  background:#660000;color:#fff;border:2px solid #aa0000;
+  width:90%;
+  margin:10px auto;
+  padding:12px;
+  font-size:18px;
+}
+
 #confirmBlock,#confirmBook {
   color:#00ff88;font-size:18px;margin-top:8px;
 }
@@ -81,8 +89,22 @@ OPEN GOOGLE CALENDAR
 <!-- CHOICE BOX -->
 <div id="choice" class="choiceBox">
 <h3>Select Action</h3>
+
 <button class="blockBtn" onclick="openBlockForm()">Block</button>
 <button class="bookBtn" onclick="openBookForm()">Book</button>
+
+<button id="choiceDeleteBlock"
+        style="display:none;"
+        onclick="choiceDeleteBlock()">
+  Delete Block
+</button>
+
+<button id="choiceDeleteBook"
+        style="display:none;"
+        onclick="choiceDeleteBook()">
+  Delete Book
+</button>
+
 <button onclick="goBack()">Back</button>
 </div>
 
@@ -197,9 +219,8 @@ function chooseAction(ds){
   document.getElementById("cal").style.display="none";
   document.getElementById("names").style.display="none";
 
-  document.getElementById("deleteOne").style.display = blocks[ds] ? "block" : "none";
-  document.getElementById("deleteAll").style.display = blocks[ds] ? "block" : "none";
-  document.getElementById("deleteBook").style.display = bookings[ds] ? "block" : "none";
+  document.getElementById("choiceDeleteBlock").style.display = blocks[ds] ? "block" : "none";
+  document.getElementById("choiceDeleteBook").style.display  = bookings[ds] ? "block" : "none";
 }
 
 function openBlockForm(){
@@ -239,69 +260,4 @@ function saveBlock(){
 
     delete bookings[key];
     blocks[key]=name;
-    sd.setDate(sd.getDate()+1);
-  }
-
-  saveAll();
-
-  document.getElementById("blockForm").style.display="none";
-  document.getElementById("choice").style.display="none";
-  document.getElementById("cal").style.display="grid";
-  document.getElementById("names").style.display="grid";
-  build();
-}
-
-function saveBook(){
-  let t=document.getElementById("bookTitle").value;
-  let tm=document.getElementById("bookTime").value;
-  let l=document.getElementById("bookLoc").value;
-
-  bookings[selectedDate]={title:t,time:tm,loc:l};
-  delete blocks[selectedDate];
-
-  saveAll();
-
-  document.getElementById("bookForm").style.display="none";
-  document.getElementById("choice").style.display="none";
-  document.getElementById("cal").style.display="grid";
-  document.getElementById("names").style.display="grid";
-  build();
-}
-
-function deleteOne(){
-  delete blocks[selectedDate];
-  saveAll();
-}
-
-function deleteAll(){
-  let name=blocks[selectedDate];
-  for(let k in blocks){
-    if(blocks[k]==name) delete blocks[k];
-  }
-  saveAll();
-}
-
-function deleteBooking(){
-  delete bookings[selectedDate];
-  saveAll();
-}
-
-function goBack(){
-  document.getElementById("choice").style.display="none";
-  document.getElementById("blockForm").style.display="none";
-  document.getElementById("bookForm").style.display="none";
-
-  document.getElementById("cal").style.display="grid";
-  document.getElementById("names").style.display="grid";
-  build();
-}
-
-function nextMonth(){ cm++; if(cm>11){cm=0; cy++;} build(); }
-function prevMonth(){ cm--; if(cm<0){cm=11; cy--;} build(); }
-
-renderNames();
-build();
-</script>
-
-</body>
-</html>
+    sd.set
