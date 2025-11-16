@@ -4,6 +4,10 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
 <title>NEON BLONDE BLOCK CALENDAR</title>
 
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
 <style>
 body {margin:0;padding:10px;background:#0a0a0f;color:#eee;font-family:Arial;text-align:center;}
 h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
@@ -32,8 +36,9 @@ h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
   background:#1b1b27;border-radius:6px;min-height:70px;
   line-height:1.2;cursor:pointer;
 }
+
 @media(max-width:480px){
-  .day {padding:3vw;min-height:12vw;font-size:2.8vw;}
+  .day {padding:3vw;min-height:12vw;font-size:3vw;}
 }
 
 .weekend {background:#1a2240;}
@@ -46,24 +51,19 @@ h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
 input, select, button {
   width:90%;padding:10px;margin:8px;border-radius:6px;font-size:16px;
 }
+
 .blockBtn {background:#550000;color:#fff;border:2px solid #aa0000;}
 .bookBtn {background:#004400;color:#aaffaa;border:2px solid #00aa00;}
 
-#deleteOne,#deleteAll,#deleteBook {
-  background:#440000;border:2px solid #aa0000;color:#fff;
-}
-
 #choiceDeleteBlock,#choiceDeleteBook {
   background:#660000;color:#fff;border:2px solid #aa0000;
-  width:90%;
-  margin:10px auto;
-  padding:12px;
-  font-size:18px;
+  width:90%;margin:10px auto;padding:12px;font-size:18px;
 }
 
 #confirmBlock,#confirmBook {
   color:#00ff88;font-size:18px;margin-top:8px;
 }
+
 </style>
 </head>
 
@@ -86,24 +86,15 @@ OPEN GOOGLE CALENDAR
 <div id="names" class="grid"></div>
 <div id="cal" class="grid"></div>
 
-<!-- CHOICE BOX -->
+<!-- ACTION POPUP -->
 <div id="choice" class="choiceBox">
 <h3>Select Action</h3>
 
 <button class="blockBtn" onclick="openBlockForm()">Block</button>
 <button class="bookBtn" onclick="openBookForm()">Book</button>
 
-<button id="choiceDeleteBlock"
-        style="display:none;"
-        onclick="choiceDeleteBlock()">
-  Delete Block
-</button>
-
-<button id="choiceDeleteBook"
-        style="display:none;"
-        onclick="choiceDeleteBook()">
-  Delete Book
-</button>
+<button id="choiceDeleteBlock" style="display:none;" onclick="choiceDeleteBlock()">Delete Block</button>
+<button id="choiceDeleteBook" style="display:none;" onclick="choiceDeleteBook()">Delete Booking</button>
 
 <button onclick="goBack()">Back</button>
 </div>
@@ -126,8 +117,6 @@ OPEN GOOGLE CALENDAR
 <div id="confirmBlock"></div>
 
 <button onclick="saveBlock()">Save Block</button>
-<button id="deleteOne" style="display:none;" onclick="deleteOne()">Delete This Day</button>
-<button id="deleteAll" style="display:none;" onclick="deleteAll()">Delete Entire Block</button>
 <button onclick="goBack()">Back</button>
 </div>
 
@@ -142,22 +131,57 @@ OPEN GOOGLE CALENDAR
 <div id="confirmBook"></div>
 
 <button onclick="saveBook()">Save Booking</button>
-<button id="deleteBook" style="display:none;" onclick="deleteBooking()">Delete Booking</button>
 <button onclick="goBack()">Back</button>
 </div>
 
 <script>
+// ------------------------------------------------------------
+// 1. INITIALIZE FIREBASE
+// ------------------------------------------------------------
+const firebaseConfig = {
+  apiKey: "AIzaSyBzU_Ghsg0JErgTYbc13o1A4t0AKHliq20",
+  authDomain: "nb-blockcal.firebaseapp.com",
+  databaseURL: "https://nb-blockcal-default-rtdb.firebaseio.com",
+  projectId: "nb-blockcal",
+  storageBucket: "nb-blockcal.firebasestorage.app",
+  messagingSenderId: "305235297886",
+  appId: "1:305235297886:web:bf0e1b03ac163f6b7e56cf",
+  measurementId: "G-WLG0076P3T"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ------------------------------------------------------------
+// 2. STATE
+// ------------------------------------------------------------
 let today=new Date(), cy=today.getFullYear(), cm=today.getMonth();
-let blocks=JSON.parse(localStorage.getItem("blocks")||"{}");
-let bookings=JSON.parse(localStorage.getItem("bookings")||"{}");
-const dn=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+let blocks = {};
+let bookings = {};
 let selectedDate="";
 
-function saveAll(){
-  localStorage.setItem("blocks",JSON.stringify(blocks));
-  localStorage.setItem("bookings",JSON.stringify(bookings));
+const dn=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+// ------------------------------------------------------------
+// 3. LOAD DATA IN REAL TIME
+// ------------------------------------------------------------
+db.ref("calendar").on("value", snapshot => {
+  const data = snapshot.val() || {};
+  blocks = data.blocks || {};
+  bookings = data.bookings || {};
+  build();
+});
+
+// ------------------------------------------------------------
+// 4. SAVE ALL TO FIREBASE
+// ------------------------------------------------------------
+function saveToFirebase() {
+  db.ref("calendar").set({ blocks, bookings });
 }
 
+// ------------------------------------------------------------
+// 5. RENDER HEADERS
+// ------------------------------------------------------------
 function renderNames(){
   let n=document.getElementById("names");
   n.innerHTML="";
@@ -169,6 +193,9 @@ function renderNames(){
   });
 }
 
+// ------------------------------------------------------------
+// 6. BUILD CALENDAR
+// ------------------------------------------------------------
 function build(){
   document.getElementById("month").innerText =
     new Date(cy,cm).toLocaleString("default",{month:"long",year:"numeric"});
@@ -212,6 +239,9 @@ function build(){
   }
 }
 
+// ------------------------------------------------------------
+// 7. ACTION POPUP
+// ------------------------------------------------------------
 function chooseAction(ds){
   selectedDate = ds;
 
@@ -223,27 +253,18 @@ function chooseAction(ds){
   document.getElementById("choiceDeleteBook").style.display  = bookings[ds] ? "block" : "none";
 }
 
+// ------------------------------------------------------------
+// 8. BLOCK FORM
+// ------------------------------------------------------------
 function openBlockForm(){
   document.getElementById("choice").style.display="none";
   document.getElementById("blockForm").style.display="block";
 
   document.getElementById("confirmBlock").innerText =
-    "Blocking: " + new Date(selectedDate + "T00:00:00")
-      .toLocaleDateString(undefined,{weekday:"short",month:"long",day:"numeric",year:"numeric"});
+    "Blocking: " + selectedDate;
 
   document.getElementById("blockStart").value = selectedDate;
   document.getElementById("blockEnd").value   = selectedDate;
-}
-
-function openBookForm(){
-  document.getElementById("choice").style.display="none";
-  document.getElementById("bookForm").style.display="block";
-
-  document.getElementById("bookTitle").value = bookings[selectedDate]?.title || "";
-  document.getElementById("bookTime").value  = bookings[selectedDate]?.time  || "";
-  document.getElementById("bookLoc").value   = bookings[selectedDate]?.loc   || "";
-
-  document.getElementById("confirmBook").innerText="";
 }
 
 function saveBlock(){
@@ -251,83 +272,64 @@ function saveBlock(){
   let s=document.getElementById("blockStart").value;
   let e=document.getElementById("blockEnd").value || s;
 
-  let sd=new Date(s + "T00:00:00");
-  let ed=new Date(e + "T00:00:00");
+  let sd=new Date(s+"T00:00:00");
+  let ed=new Date(e+"T00:00:00");
 
   while(sd <= ed){
-    let key=
-      `${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
+    let key = `${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
 
     delete bookings[key];
     blocks[key]=name;
     sd.setDate(sd.getDate()+1);
   }
 
-  saveAll();
+  saveToFirebase();
+  goBack();
+}
 
-  // AUTO CLOSE
-  document.getElementById("blockForm").style.display="none";
-  document.getElementById("bookForm").style.display="none";
+// ------------------------------------------------------------
+// 9. BOOK FORM
+// ------------------------------------------------------------
+function openBookForm(){
   document.getElementById("choice").style.display="none";
+  document.getElementById("bookForm").style.display="block";
 
-  document.getElementById("cal").style.display="grid";
-  document.getElementById("names").style.display="grid";
-  build();
+  document.getElementById("bookTitle").value = bookings[selectedDate]?.title || "";
+  document.getElementById("bookTime").value  = bookings[selectedDate]?.time  || "";
+  document.getElementById("bookLoc").value   = bookings[selectedDate]?.loc   || "";
 }
 
 function saveBook(){
-  let t=document.getElementById("bookTitle").value;
-  let tm=document.getElementById("bookTime").value;
-  let l=document.getElementById("bookLoc").value;
+  bookings[selectedDate] = {
+    title: document.getElementById("bookTitle").value,
+    time: document.getElementById("bookTime").value,
+    loc: document.getElementById("bookLoc").value
+  };
 
-  bookings[selectedDate]={title:t,time:tm,loc:l};
   delete blocks[selectedDate];
 
-  saveAll();
-
-  // AUTO CLOSE
-  document.getElementById("bookForm").style.display="none";
-  document.getElementById("blockForm").style.display="none";
-  document.getElementById("choice").style.display="none";
-
-  document.getElementById("cal").style.display="grid";
-  document.getElementById("names").style.display="grid";
-  build();
-}
-
-function deleteOne(){
-  delete blocks[selectedDate];
-  saveAll();
+  saveToFirebase();
   goBack();
 }
 
-function deleteAll(){
-  let name=blocks[selectedDate];
-  for(let k in blocks){
-    if(blocks[k]==name) delete blocks[k];
-  }
-  saveAll();
-  goBack();
-}
-
-function deleteBooking(){
-  delete bookings[selectedDate];
-  saveAll();
-  goBack();
-}
-
+// ------------------------------------------------------------
+// 10. DELETE OPS
+// ------------------------------------------------------------
 function choiceDeleteBlock(){
   delete blocks[selectedDate];
-  saveAll();
+  saveToFirebase();
   goBack();
 }
 
 function choiceDeleteBook(){
   delete bookings[selectedDate];
-  saveAll();
+  saveToFirebase();
   goBack();
 }
 
+// ------------------------------------------------------------
+// 11. NAV + RESET
+// ------------------------------------------------------------
 function goBack(){
   document.getElementById("choice").style.display="none";
   document.getElementById("blockForm").style.display="none";
@@ -335,6 +337,7 @@ function goBack(){
 
   document.getElementById("cal").style.display="grid";
   document.getElementById("names").style.display="grid";
+
   build();
 }
 
@@ -343,6 +346,7 @@ function prevMonth(){ cm--; if(cm<0){cm=11; cy--;} build(); }
 
 renderNames();
 build();
+
 </script>
 
 </body>
