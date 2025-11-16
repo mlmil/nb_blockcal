@@ -101,7 +101,6 @@ OPEN GOOGLE CALENDAR
 <input id="blockStart" type="date">
 <input id="blockEnd" type="date">
 
-<!-- DATE CONFIRMATION AREA -->
 <div id="confirmBlock"></div>
 
 <button onclick="saveBlock()">Save Block</button>
@@ -244,22 +243,12 @@ function saveBlock(){
   }
 
   saveAll();
-  document.getElementById("confirmBlock").innerText="Saved.";
-}
 
-function deleteOne(){
-  delete blocks[selectedDate];
-  saveAll();
-  document.getElementById("confirmBlock").innerText="Deleted.";
-}
-
-function deleteAll(){
-  let name=blocks[selectedDate];
-  for(let k in blocks){
-    if(blocks[k]==name) delete blocks[k];
-  }
-  saveAll();
-  document.getElementById("confirmBlock").innerText="Deleted.";
+  document.getElementById("blockForm").style.display="none";
+  document.getElementById("choice").style.display="none";
+  document.getElementById("cal").style.display="grid";
+  document.getElementById("names").style.display="grid";
+  build();
 }
 
 function saveBook(){
@@ -271,13 +260,30 @@ function saveBook(){
   delete blocks[selectedDate];
 
   saveAll();
-  document.getElementById("confirmBook").innerText="Saved.";
+
+  document.getElementById("bookForm").style.display="none";
+  document.getElementById("choice").style.display="none";
+  document.getElementById("cal").style.display="grid";
+  document.getElementById("names").style.display="grid";
+  build();
+}
+
+function deleteOne(){
+  delete blocks[selectedDate];
+  saveAll();
+}
+
+function deleteAll(){
+  let name=blocks[selectedDate];
+  for(let k in blocks){
+    if(blocks[k]==name) delete blocks[k];
+  }
+  saveAll();
 }
 
 function deleteBooking(){
   delete bookings[selectedDate];
   saveAll();
-  document.getElementById("confirmBook").innerText="Deleted.";
 }
 
 function goBack(){
@@ -287,7 +293,6 @@ function goBack(){
 
   document.getElementById("cal").style.display="grid";
   document.getElementById("names").style.display="grid";
-
   build();
 }
 
