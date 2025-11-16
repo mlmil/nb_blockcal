@@ -5,115 +5,56 @@
 <title>NEON BLONDE BLOCK CALENDAR</title>
 
 <style>
-body {
-  margin:0;
-  padding:10px;
-  background:#0a0a0f;
-  color:#eee;
-  font-family:Arial;
-  text-align:center;
-}
-h1 {
-  color:#ff77ff;
-  font-size:28px;
-  margin:5px 0;
-}
+body {margin:0;padding:10px;background:#0a0a0f;color:#eee;font-family:Arial;text-align:center;}
+h1 {color:#ff77ff;font-size:28px;margin:5px 0;}
 
 .gcal {
-  display:block;
-  background:#003322;
-  color:#00ff88;
-  padding:14px;
-  margin:12px auto;
-  border-radius:10px;
-  width:90%;
-  font-size:20px;
-  text-align:center;
-  text-decoration:none;
-  border:2px solid #00ff88;
+  display:block;background:#003322;color:#00ff88;padding:14px;
+  margin:12px auto;border-radius:10px;width:90%;font-size:20px;
+  text-align:center;text-decoration:none;border:2px solid #00ff88;
 }
-.gcal:active { background:#005533; }
+.gcal:active {background:#005533;}
 
-.month {
-  font-size:48px;
-  font-weight:bold;
-  margin:15px 0 5px;
-  color:#fff;
-}
-@media(max-width:480px){
-  .month { font-size:34px; }
-}
+.month {font-size:48px;font-weight:bold;margin:15px 0 5px;color:#fff;}
+@media(max-width:480px){.month{font-size:34px;}}
 
-.nav {
-  display:flex;
-  justify-content:space-between;
-  margin:10px 0;
-}
+.nav {display:flex;justify-content:space-between;margin:10px 0;}
 .nav button {
-  flex:1;
-  margin:0 5px;
-  padding:10px;
-  font-size:20px;
-  background:#111;
-  color:#00ffcc;
-  border:2px solid #00ffcc;
-  border-radius:6px;
+  flex:1;margin:0 5px;padding:10px;font-size:20px;background:#111;
+  color:#00ffcc;border:2px solid #00ffcc;border-radius:6px;
 }
 
-.grid {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:5px;
-}
-.day-name {
-  font-size:14px;
-  padding:6px 0;
-  color:#ffeeff;
-}
+.grid {display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.day-name {font-size:14px;padding:6px 0;color:#ffeeff;}
 
 .day {
-  padding:20px;
-  border:2px solid #333;
-  font-size:12px;
-  background:#1b1b27;
-  border-radius:6px;
-  min-height:70px;
+  padding:20px;border:2px solid #333;font-size:12px;
+  background:#1b1b27;border-radius:6px;min-height:70px;
   line-height:1.2;
 }
 @media(max-width:480px){
-  .day {
-    padding:3vw;
-    min-height:12vw;
-    font-size:2.8vw;
-  }
+  .day {padding:3vw;min-height:12vw;font-size:2.8vw;}
 }
 
-.weekend { background:#1a2240; }
-.today { border:3px solid #00ff88; }
-.blocked { background:#550000 !important; color:#fff; }
-.booked { background:#003d00 !important; color:#aaffaa; font-weight:bold; }
+.weekend {background:#1a2240;}
+.today {border:3px solid #00ff88;}
+.blocked {background:#550000 !important;color:#fff;}
+.booked {background:#003d00 !important;color:#aaffaa;font-weight:bold;}
 
-.form, .choiceBox {
-  display:none;
-  margin-top:15px;
-}
+.form, .choiceBox {display:none;margin-top:15px;}
 
 input, select, button {
-  width:90%;
-  padding:10px;
-  margin:8px;
-  border-radius:6px;
-  font-size:16px;
+  width:90%;padding:10px;margin:8px;border-radius:6px;font-size:16px;
 }
-#deleteOne, #deleteAll, #deleteBook {
-  background:#440000;
-  border:2px solid #aa0000;
-  color:#fff;
+.blockBtn {background:#550000;color:#fff;border:2px solid #aa0000;}
+.bookBtn {background:#004400;color:#aaffaa;border:2px solid #00aa00;}
+
+#deleteOne,#deleteAll,#deleteBook {
+  background:#440000;border:2px solid #aa0000;color:#fff;
 }
-#confirmBlock, #confirmBook {
-  color:#00ff88;
-  font-size:18px;
-  margin-top:8px;
+
+#confirmBlock,#confirmBook {
+  color:#00ff88;font-size:18px;margin-top:8px;
 }
 </style>
 </head>
@@ -129,8 +70,8 @@ OPEN GOOGLE CALENDAR
 </a>
 
 <div class="nav">
-  <button onclick="prevMonth()">◀</button>
-  <button onclick="nextMonth()">▶</button>
+<button onclick="prevMonth()">◀</button>
+<button onclick="nextMonth()">▶</button>
 </div>
 
 <div id="month" class="month"></div>
@@ -139,52 +80,49 @@ OPEN GOOGLE CALENDAR
 
 <!-- CHOICE BOX -->
 <div id="choice" class="choiceBox">
-  <h3>Select Action</h3>
-  <button style="background:#550000;color:#fff;border:2px solid #aa0000;"
-          onclick="openBlockForm()">Block</button>
-
-  <button style="background:#004400;color:#aaffaa;border:2px solid #00aa00;"
-          onclick="openBookForm()">Book</button>
-
-  <button onclick="goBack()">Back</button>
+<h3>Select Action</h3>
+<button class="blockBtn" onclick="openBlockForm()">Block</button>
+<button class="bookBtn" onclick="openBookForm()">Book</button>
+<button onclick="goBack()">Back</button>
 </div>
 
 <!-- BLOCK FORM -->
 <div id="blockForm" class="form">
-  <h3 style="color:#ffbbbb;">Block</h3>
+<h3 style="color:#ffbbbb;">Block</h3>
 
-  <select id="blockName">
-    <option>MIKE</option>
-    <option>KYLE</option>
-    <option>ALFRED</option>
-    <option>DAVE</option>
-    <option>CURT</option>
-  </select>
+<select id="blockName">
+<option>MIKE</option>
+<option>KYLE</option>
+<option>ALFRED</option>
+<option>DAVE</option>
+<option>CURT</option>
+</select>
 
-  <input id="blockStart" type="date">
-  <input id="blockEnd" type="date">
+<input id="blockStart" type="date">
+<input id="blockEnd" type="date">
 
-  <div id="confirmBlock"></div>
+<!-- DATE CONFIRMATION AREA -->
+<div id="confirmBlock"></div>
 
-  <button onclick="saveBlock()">Save Block</button>
-  <button id="deleteOne" style="display:none;" onclick="deleteOne()">Delete This Day</button>
-  <button id="deleteAll" style="display:none;" onclick="deleteAll()">Delete Entire Block</button>
-  <button onclick="goBack()">Back</button>
+<button onclick="saveBlock()">Save Block</button>
+<button id="deleteOne" style="display:none;" onclick="deleteOne()">Delete This Day</button>
+<button id="deleteAll" style="display:none;" onclick="deleteAll()">Delete Entire Block</button>
+<button onclick="goBack()">Back</button>
 </div>
 
-<!-- BOOKING FORM -->
+<!-- BOOK FORM -->
 <div id="bookForm" class="form">
-  <h3 style="color:#aaffaa;">Book</h3>
+<h3 style="color:#aaffaa;">Book</h3>
 
-  <input id="bookTitle" placeholder="Title (e.g., Ventura Gig)">
-  <input id="bookTime" type="time">
-  <input id="bookLoc" placeholder="Location">
+<input id="bookTitle" placeholder="Title">
+<input id="bookTime" type="time">
+<input id="bookLoc" placeholder="Location">
 
-  <div id="confirmBook"></div>
+<div id="confirmBook"></div>
 
-  <button onclick="saveBook()">Save Booking</button>
-  <button id="deleteBook" style="display:none;" onclick="deleteBooking()">Delete Booking</button>
-  <button onclick="goBack()">Back</button>
+<button onclick="saveBook()">Save Booking</button>
+<button id="deleteBook" style="display:none;" onclick="deleteBooking()">Delete Booking</button>
+<button onclick="goBack()">Back</button>
 </div>
 
 <script>
@@ -262,112 +200,4 @@ function chooseAction(ds){
 
   document.getElementById("deleteOne").style.display = blocks[ds] ? "block" : "none";
   document.getElementById("deleteAll").style.display = blocks[ds] ? "block" : "none";
-  document.getElementById("deleteBook").style.display = bookings[ds] ? "block" : "none";
-}
-
-function openBlockForm(){
-  document.getElementById("choice").style.display="none";
-  document.getElementById("blockForm").style.display="block";
-
-  document.getElementById("blockStart").value = selectedDate;
-  document.getElementById("blockEnd").value   = selectedDate;
-
-  document.getElementById("confirmBlock").innerText="";
-}
-
-function openBookForm(){
-  document.getElementById("choice").style.display="none";
-  document.getElementById("bookForm").style.display="block";
-
-  document.getElementById("bookTitle").value = bookings[selectedDate]?.title || "";
-  document.getElementById("bookTime").value  = bookings[selectedDate]?.time  || "";
-  document.getElementById("bookLoc").value   = bookings[selectedDate]?.loc   || "";
-
-  document.getElementById("confirmBook").innerText="";
-}
-
-function saveBlock(){
-  let name=document.getElementById("blockName").value;
-  let s=document.getElementById("blockStart").value;
-  let e=document.getElementById("blockEnd").value || s;
-
-  let sd=new Date(s);
-  let ed=new Date(e);
-
-  while(sd<=ed){
-    let key=`${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}-${String(sd.getDate()).padStart(2,'0')}`;
-    delete bookings[key];
-    blocks[key]=name;
-    sd.setDate(sd.getDate()+1);
-  }
-
-  saveAll();
-  document.getElementById("confirmBlock").innerText="Saved.";
-}
-
-function deleteOne(){
-  delete blocks[selectedDate];
-  saveAll();
-  document.getElementById("confirmBlock").innerText="Deleted.";
-}
-
-function deleteAll(){
-  let name=blocks[selectedDate];
-  for(let k in blocks){
-    if(blocks[k]==name) delete blocks[k];
-  }
-  saveAll();
-  document.getElementById("confirmBlock").innerText="Deleted.";
-}
-
-function saveBook(){
-  let t=document.getElementById("bookTitle").value;
-  let tm=document.getElementById("bookTime").value;
-  let l=document.getElementById("bookLoc").value;
-
-  bookings[selectedDate]={title:t,time:tm,loc:l};
-  delete blocks[selectedDate];
-
-  saveAll();
-  document.getElementById("confirmBook").innerText="Saved.";
-}
-
-function deleteBooking(){
-  delete bookings[selectedDate];
-  saveAll();
-  document.getElementById("confirmBook").innerText="Deleted.";
-}
-
-function goBack(){
-  document.getElementById("choice").style.display="none";
-  document.getElementById("blockForm").style.display="none";
-  document.getElementById("bookForm").style.display="none";
-
-  document.getElementById("cal").style.display="grid";
-  document.getElementById("names").style.display="grid";
-
-  build();
-}
-
-function nextMonth(){
-  cm++;
-  if(cm > 11){ cm=0; cy++; }
-  build();
-}
-
-function prevMonth(){
-  cm--;
-  if(cm < 0){ cm=11; cy--; }
-  build();
-}
-
-renderNames();
-build();
-
-</script>
-</body>
-</html>
-
-
-
-
+  document.getElementById("deleteBook").st
